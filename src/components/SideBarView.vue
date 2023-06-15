@@ -32,7 +32,7 @@
         </ul>
       </div>
     </div>
-    <div @click="logoutBtn" class="logout-btn flex items-center mb-2">
+    <div class="logout-btn flex items-center mb-2">
       <v-icon>mdi-logout</v-icon>
       <p class="logout-text mb-0">Logout</p>
     </div>
@@ -50,7 +50,7 @@ const sidebarMenu = ref([
     nameMenu: "Mijozlar",
   },
   {
-    link: "leads",
+    link: "orders",
     check: true,
     icon: "mdi-order-bool-descending-variant",
     nameMenu: "Buyurtmalar",
@@ -59,10 +59,6 @@ const sidebarMenu = ref([
 
 const changeActive = function (t) {
   num.value = t;
-};
-const logoutBtn = function () {
-  localStorage.removeItem("token");
-  window.location.reload();
 };
 </script>
 <style lang="scss" scoped>

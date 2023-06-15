@@ -18,21 +18,32 @@
             fill="#FAFAFA"
           />
         </svg>
-        <p class="text-white text-sm m-0">Mijoz qo'shish</p>
+        <p class="text-white text-sm m-0">Buyurtma qo'shish</p>
       </button>
       <el-dialog v-model="dialogVisible" title="Mijoz qo'shish" width="50%">
         <form>
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="font-semibold" for="fullname">Ism sharif</label>
-              <el-input size="large" id="fullname" v-model="fullname" />
+            <div class="col-md-6 mb-3 flex flex-col">
+              <label class="font-semibold" for="fullname">Mijoz ismi</label>
+              <el-select
+                v-model="customer_name"
+                placeholder="Select"
+                size="large"
+              >
+                <el-option
+                  v-for="item in clientStore.clientData"
+                  :key="item.fullname"
+                  :label="item.fullname"
+                  :value="item.fullname"
+                />
+              </el-select>
             </div>
             <div class="col-md-6 mb-3">
               <label class="font-semibold" for="fullname"
-                >Tug'ilgan sanasi</label
+                >Buyurtma sanasi</label
               >
               <el-date-picker
-                v-model="birth"
+                v-model="order_date"
                 type="date"
                 placeholder="DD/MM/YYYY"
                 size="large"
@@ -41,13 +52,35 @@
                 class="w-100"
               />
             </div>
-            <div class="col-md-6">
-              <label class="font-semibold" for="fullname">Address</label>
-              <el-input size="large" v-model="address" />
+            <div class="col-md-6 flex flex-col">
+              <label class="font-semibold" for="fullname">Mahsulotlar</label>
+              <el-select
+                v-model="product"
+                multiple
+                size="large"
+                placeholder="Select"
+              >
+                <el-option
+                  v-for="item in clientStore.products"
+                  :key="item.product"
+                  :label="item.product"
+                  :value="item.price"
+                >
+                  <span style="float: left">{{ item.product }}</span>
+                  <span
+                    style="
+                      float: right;
+                      color: var(--el-text-color-secondary);
+                      font-size: 13px;
+                    "
+                    >{{ item.price }} so'm</span
+                  >
+                </el-option>
+              </el-select>
             </div>
-            <div class="col-md-6">
-              <label class="font-semibold" for="fullname">Telefon raqami</label>
-              <el-input size="large" v-model="phone" />
+            <div class="col-md-6 flex items-endd">
+              <h5>Price:</h5>
+              <h5>{{ summa }}</h5>
             </div>
           </div>
         </form>
@@ -65,22 +98,22 @@
       <table class="table bg-white rounded-lg mt-4 w-100">
         <tr class="th-row bg-blue-500 rounded-lg">
           <th class="p-3 text-white">N</th>
-          <th class="p-2 text-white">Ism sharif</th>
-          <th class="p-2 text-white">Tug'ilgan sanasi</th>
-          <th class="p-2 text-white">Manzili</th>
-          <th class="p-2 text-white">Telefon raqami</th>
+          <th class="p-2 text-white">Buyurtmachi</th>
+          <th class="p-2 text-white">Xarid sanasi</th>
+          <th class="p-2 text-white">Mahsulotlar</th>
+          <th class="p-2 text-white">Buyurtma narxi</th>
           <th></th>
         </tr>
         <tr
           class="td-row p-2"
-          v-for="(elem, index) in clientStore.clientData"
+          v-for="(elem, index) in clientStore.orders"
           :key="index"
         >
           <td class="p-3">{{ index + 1 }}</td>
-          <td class="p-2">{{ elem.fullname }}</td>
-          <td class="p-2">{{ elem.birth }}</td>
-          <td class="p-2">{{ elem.address }}</td>
-          <td class="p-2">{{ elem.phone }}</td>
+          <td class="p-2">{{ elem.customer_name }}</td>
+          <td class="p-2">{{ elem.order_date }}</td>
+          <td class="p-2">{{ elem.product }}</td>
+          <td class="p-2">{{ elem.order_price }} so'm</td>
           <td class="td-data">
             <el-dropdown trigger="click">
               <el-button
@@ -128,48 +161,56 @@ import { v4 as uuidv4 } from "uuid";
 
 let clientStore = useClientStore();
 
-const fullname = ref("");
-const phone = ref("");
-const address = ref("");
-const birth = ref("");
+const customer_name = ref("");
+const product = ref([]);
+const order_price = ref("");
+const order_date = ref("");
 
 let dialogVisible = ref(false);
-let result = ref(null);
 let isEditBtn = ref(false);
 let clientIndex = ref(null);
 
+const calculatePrice = function () {
+  let summa = ref(0);
+  product.value.forEach((elem) => {
+    summa.value += elem;
+  });
+  return summa.value;
+};
+const summa = ref(calculatePrice());
+
 const openModal = function () {
-  fullname.value = null;
-  address.value = null;
-  birth.value = null;
-  phone.value = null;
+  customer_name.value = null;
+  product.value = null;
+  order_date.value = null;
+  order_price.value = null;
   dialogVisible.value = true;
   isEditBtn.value = false;
 };
 const submitClientDataBtn = function () {
   if (!isEditBtn.value) {
-    if (fullname.value && address.value && birth.value && phone.value) {
+    if (customer_name.value && order_date.value) {
       clientStore.clientData.push({
         id: uuidv4(),
-        fullname: fullname.value,
-        address: address.value,
-        birth: birth.value,
-        phone: phone.value,
+        customer_name: customer_name.value,
+        product: address.value,
+        order_date: order_date.value,
+        order_price: order_price.value,
       });
       dialogVisible.value = false;
       toast.success("Muvaqqiyatli qo'shildi");
       fullname.value = "";
       address.value = "";
-      birth.value = "";
-      phone.value = "";
+      order_date.value = "";
+      order_price.value = "";
     } else {
       toast.info("Barcha maydonlarni to'ldirish kere");
     }
   } else {
     clientStore.clientData[clientIndex.value].fullname = fullname.value;
-    clientStore.clientData[clientIndex.value].birth = birth.value;
+    clientStore.clientData[clientIndex.value].order_date = order_date.value;
     clientStore.clientData[clientIndex.value].address = address.value;
-    clientStore.clientData[clientIndex.value].phone = phone.value;
+    clientStore.clientData[clientIndex.value].order_price = order_price.value;
 
     dialogVisible.value = false;
     toast.success("Yangilandi");
@@ -206,9 +247,9 @@ const editClient = function (id, index) {
   clientStore.clientData.forEach((elem) => {
     if (elem.id == id) {
       fullname.value = elem.fullname;
-      phone.value = elem.phone;
+      order_price.value = elem.order_price;
       address.value = elem.address;
-      birth.value = elem.birth;
+      order_date.value = elem.order_date;
     }
   });
 };
